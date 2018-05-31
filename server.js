@@ -2,16 +2,24 @@ const express = require ('express');
 const app = express ();
 const server = require ('http').Server (app);
 const bodyParser = require ('body-parser');
-var io = require ('socket.io') (server);
+const {
+  get: getFromStore,
+  set: setInStore,
+  subscribe: subscribeStoreEvent,
+} = require ('./store');
 
+// Sockets
+var io = require ('socket.io') (server);
 io.on ('connection', function (socket) {
-  socket.emit ('store-updated', {my: 'data'});
+  subscribeStoreEvent ('store-updated', updatedData => {
+    socket.emit ('store-updated', {updatedData});
+  });
 });
 
+// For parsing JSON
 app.use (bodyParser.json ());
 
-const {get: getFromStore, set: setInStore} = require ('./store');
-
+// Send the file with socket config
 app.get ('/', (req, res) => {
   res.set ('Access-Control-Allow-Origin', '*');
   res.sendFile (__dirname + '/index.html');
@@ -31,4 +39,5 @@ app.post ('/set', (req, res) => {
   res.send (JSON.stringify ({status: result}));
 });
 
+// Start the server
 server.listen (3000, () => console.log ('Server is running!'));
