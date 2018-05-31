@@ -2,12 +2,22 @@ const express = require ('express');
 const app = express ();
 const server = require ('http').Server (app);
 const bodyParser = require ('body-parser');
+var io = require ('socket.io') (server);
+
+io.on ('connection', function (socket) {
+  socket.emit ('store-updated', {my: 'data'});
+});
 
 app.use (bodyParser.json ());
 
 const {get: getFromStore, set: setInStore} = require ('./store');
 
-// Set from the store
+app.get ('/', (req, res) => {
+  res.set ('Access-Control-Allow-Origin', '*');
+  res.sendFile (__dirname + '/index.html');
+});
+
+// Get from the store
 app.get ('/get', (req, res) => {
   const {key} = req.query;
   const data = getFromStore (key);

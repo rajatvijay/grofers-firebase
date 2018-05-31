@@ -1,4 +1,5 @@
 const store = {};
+const subscriptions = [];
 
 module.exports.get = key => {
   return store[key];
